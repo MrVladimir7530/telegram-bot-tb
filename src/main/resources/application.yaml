@@ -9,3 +9,6 @@ spring:
       ddl-auto: validate
   liquibase:
     change-log: classpath:liquibase/changelog-master.yml
+bot:
+  name: safety_volkov_bot
+  token: 6635776029:AAHlYANQJ_0zW9VBv1nC2uz0jUc0RLHGE5Q
