@@ -4,13 +4,18 @@ import com.example.telegrambot.entity.Subscriber;
 import com.example.telegrambot.repositories.SubscriberRepository;
 import lombok.RequiredArgsConstructor;
 import org.jvnet.hk2.annotations.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
+@Component
 public class AdminService {
     private final SubscriberRepository subscriberRepository;
+
+    public AdminService(SubscriberRepository subscriberRepository) {
+        this.subscriberRepository = subscriberRepository;
+    }
+
     public Subscriber add(Long chat_id) {
         Subscriber subscriber = new Subscriber();
         subscriber.setAdmin(true);

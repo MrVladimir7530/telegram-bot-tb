@@ -3,15 +3,20 @@ package com.example.telegrambot.controllers;
 import com.example.telegrambot.entity.Subscriber;
 import com.example.telegrambot.services.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+
+    @Autowired
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
 
     @PostMapping("/{id}")
     public ResponseEntity<Subscriber> add(@PathVariable Long id) {

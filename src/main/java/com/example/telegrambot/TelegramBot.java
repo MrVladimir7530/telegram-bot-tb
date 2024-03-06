@@ -1,8 +1,8 @@
 package com.example.telegrambot;
 
 import com.example.telegrambot.configurations.BotConfig;
-import com.example.telegrambot.relocations.StartMenu;
-import com.example.telegrambot.relocations.StartMenuAdmin;
+import com.example.telegrambot.relocations.StartMenuRelocation;
+import com.example.telegrambot.relocations.StartMenuAdminRelocation;
 import com.example.telegrambot.relocations.StateBot;
 import com.example.telegrambot.repositories.AdminRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +19,15 @@ public class TelegramBot extends TelegramLongPollingBot {
     private StateBot stateBot;
     private final AdminRepository adminRepository;
     private final BotConfig botConfig;
-    private final StartMenu startMenu;
-    private final StartMenuAdmin startMenuAdmin;
+    private final StartMenuRelocation startMenuRelocation;
+    private final StartMenuAdminRelocation startMenuAdminRelocation;
 
     @Autowired
-    public TelegramBot(AdminRepository adminRepository, BotConfig botConfig, @Lazy StartMenu startMenu, @Lazy StartMenuAdmin startMenuAdmin) {
+    public TelegramBot(AdminRepository adminRepository, BotConfig botConfig, @Lazy StartMenuRelocation startMenuRelocation, @Lazy StartMenuAdminRelocation startMenuAdminRelocation) {
         this.adminRepository = adminRepository;
         this.botConfig = botConfig;
-        this.startMenu = startMenu;
-        this.startMenuAdmin = startMenuAdmin;
+        this.startMenuRelocation = startMenuRelocation;
+        this.startMenuAdminRelocation = startMenuAdminRelocation;
     }
 
 
@@ -41,14 +41,14 @@ public class TelegramBot extends TelegramLongPollingBot {
             checkByAdmin(chatId);
         }
         if (stateBot == null) {
-            stateBot = startMenu;
+            stateBot = startMenuRelocation;
         }
         stateBot = stateBot.doing(update);
     }
 
     private void checkByAdmin(Long chatId) {
         if (adminRepository.getAdmins().contains(chatId) && stateBot == null) {
-            stateBot = startMenuAdmin;
+            stateBot = startMenuAdminRelocation;
         }
     }
 

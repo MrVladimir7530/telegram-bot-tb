@@ -1,7 +1,6 @@
 package com.example.telegrambot.relocations;
 
 import com.example.telegrambot.services.SendMessageBot;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -13,15 +12,14 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class StartMenu implements StateBot {
+public class StartMenuAdminRelocation implements StateBot{
+
     private final SendMessageBot sendMessageBot;
 
     private final String PHOTO = "Photo";
     private final String TEXT = "TEXT";
 
-
-    @Autowired
-    public StartMenu(SendMessageBot sendMessageBot) {
+    public StartMenuAdminRelocation(SendMessageBot sendMessageBot) {
         this.sendMessageBot = sendMessageBot;
     }
 
@@ -53,7 +51,6 @@ public class StartMenu implements StateBot {
         inlineKeyboardMarkup.setKeyboard(Collections.singletonList(buttons));
         return inlineKeyboardMarkup;
     }
-
 
     public StateBot choiceWay(SendMessage sendMessage) {
         sendMessageBot.sendMessage(sendMessage);
