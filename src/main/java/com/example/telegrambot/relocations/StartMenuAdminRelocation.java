@@ -1,5 +1,6 @@
 package com.example.telegrambot.relocations;
 
+import com.example.telegrambot.model.SendMessageAndStateBot;
 import com.example.telegrambot.services.SendMessageBot;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class StartMenuAdminRelocation implements StateBot{
+public class StartMenuAdminRelocation implements StateBot {
 
     private final SendMessageBot sendMessageBot;
 
@@ -24,16 +25,19 @@ public class StartMenuAdminRelocation implements StateBot{
     }
 
     @Override
-    public StateBot doing(Update update) {
-
+    public SendMessageAndStateBot doing(Update update) {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
         sendMessage.setChatId(update.getMessage().getChatId());
         sendMessage.setText("Hi, vova");
 
-
         return choiceWay(sendMessage);
 
+    }
+
+    @Override
+    public SendMessage createKeyboard(SendMessage sendMessage) {
+        sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
+        return sendMessage;
     }
 
     public InlineKeyboardMarkup createInlineKeyboardMarkup() {
@@ -52,8 +56,11 @@ public class StartMenuAdminRelocation implements StateBot{
         return inlineKeyboardMarkup;
     }
 
-    public StateBot choiceWay(SendMessage sendMessage) {
+    public SendMessageAndStateBot choiceWay(SendMessage sendMessage) {
+        SendMessageAndStateBot sendMessageAndStateBot = new SendMessageAndStateBot();
         sendMessageBot.sendMessage(sendMessage);
-        return this;
+        sendMessageAndStateBot.setSendMessage(sendMessage);
+        sendMessageAndStateBot.setStateBot(this);
+        return sendMessageAndStateBot;
     }
 }

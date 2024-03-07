@@ -1,6 +1,7 @@
 package com.example.telegrambot.relocations;
 
 import com.example.telegrambot.entity.Violation;
+import com.example.telegrambot.model.SendMessageAndStateBot;
 import com.example.telegrambot.repositories.ViolationRepository;
 import com.example.telegrambot.services.SendMessageBot;
 import liquibase.pro.packaged.S;
@@ -17,11 +18,9 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class ViolationRelocation implements StateBot {
-    private final NewViolationRelocation newViolationRelocation;
+public class ViolationRelocation  implements StateBot {
     private final ViolationRepository violationRepository;
     private Violation violation;
-    private final SendMessageBot sendMessageBot;
     private ViolationChoiceWay violationChoiceWay = ViolationChoiceWay.START;
     private final String PHOTO = "VIOLATION";
     private final String TEXT = "TEXT";
@@ -29,14 +28,12 @@ public class ViolationRelocation implements StateBot {
     private final String BACK_TO_START_MENU = "BACK";
     private final String BACK = "BACK_TO_START_MENU";
 
-    public ViolationRelocation(NewViolationRelocation newViolationRelocation, ViolationRepository violationRepository, SendMessageBot sendMessageBot) {
-        this.newViolationRelocation = newViolationRelocation;
-        this.violationRepository = violationRepository;
-        this.sendMessageBot = sendMessageBot;
+    public ViolationRelocation(ViolationRepository violationRepository) {
+        this.violationRepository = violationRepository;;
     }
 
     @Override
-    public StateBot doing(Update update) {
+    public SendMessageAndStateBot doing(Update update) {
         SendMessage sendMessage = new SendMessage();
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -46,6 +43,19 @@ public class ViolationRelocation implements StateBot {
         sendMessage.setChatId(update.getMessage().getChatId());
         sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
         return choiceWayForText(sendMessage);
+    }
+
+    @Override
+    public SendMessage createKeyboard(SendMessage sendMessage) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = null;
+        switch (violationChoiceWay) {
+            case START -> inlineKeyboardMarkup = createInlineKeyboardMarkup();
+            case TEXT, PHOTO -> inlineKeyboardMarkup = createKeyboardBack();
+            default -> createInlineKeyboardMarkup();
+        }
+
+        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+        return sendMessage;
     }
 
     public InlineKeyboardMarkup createInlineKeyboardMarkup() {
@@ -60,16 +70,26 @@ public class ViolationRelocation implements StateBot {
         saveViolation.setCallbackData(SAVE);
         back.setCallbackData(BACK_TO_START_MENU);
 
+        List<List<InlineKeyboardButton>> rowLine = new ArrayList<>();
+        List<InlineKeyboardButton> buttons1 = new ArrayList<>();
+        List<InlineKeyboardButton> buttons2 = new ArrayList<>();
+        List<InlineKeyboardButton> buttons3 = new ArrayList<>();
+        List<InlineKeyboardButton> buttons4 = new ArrayList<>();
 
-        List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(addViolation);
-        buttons.add(addText);
-        buttons.add(saveViolation);
-        buttons.add(back);
+        buttons1.add(addViolation);
+        buttons2.add(addText);
+        buttons3.add(saveViolation);
+        buttons4.add(back);
 
-        inlineKeyboardMarkup.setKeyboard(Collections.singletonList(buttons));
+        rowLine.add(buttons1);
+        rowLine.add(buttons2);
+        rowLine.add(buttons3);
+        rowLine.add(buttons4);
+
+        inlineKeyboardMarkup.setKeyboard(rowLine);
         return inlineKeyboardMarkup;
     }
+
     public InlineKeyboardMarkup createKeyboardBack() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         InlineKeyboardButton back = new InlineKeyboardButton("Назад");
@@ -84,67 +104,63 @@ public class ViolationRelocation implements StateBot {
     }
 
 
-    public StateBot choiceWayForText(SendMessage sendMessage) {
+    public SendMessageAndStateBot choiceWayForText(SendMessage sendMessage) {
         switch (violationChoiceWay) {
             case START -> {
-                sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
                 sendMessage.setText("Пожалуйста, выберите кнопку");
-                sendMessageBot.sendMessage(sendMessage);
-                return this;
+                return getSendMessageAndStateBot(this, sendMessage);
             }
             case PHOTO -> {
-                sendMessage.setReplyMarkup(createKeyboardBack());
                 sendMessage.setText("Фото успешно добавлено");
-                sendMessageBot.sendMessage(sendMessage);
-                return this;
+                return getSendMessageAndStateBot(this, sendMessage);
             }
             case TEXT -> {
-                sendMessage.setReplyMarkup(createKeyboardBack());
                 sendMessage.setText("Текст успешно добавлен");
-                sendMessageBot.sendMessage(sendMessage);
-                return this;
+                return getSendMessageAndStateBot(this, sendMessage);
             }
         }
-        return null;
+        return getSendMessageAndStateBot(this, sendMessage);
     }
 
-    public StateBot choiceWayForButton(CallbackQuery callbackQuery) {
+    public SendMessageAndStateBot choiceWayForButton(CallbackQuery callbackQuery) {
         Message message = callbackQuery.getMessage();
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
         switch (callbackQuery.getData()) {
             case PHOTO -> {
-                sendMessage.setText("Добавьте фото нарушения");
-                sendMessageBot.sendMessage(sendMessage);
                 violationChoiceWay = ViolationChoiceWay.PHOTO;
-                return newViolationRelocation;
+                sendMessage.setText("Добавьте фото нарушения");
+                return getSendMessageAndStateBot(this, sendMessage);
             }
             case TEXT -> {
-                sendMessage.setText("Добавьте описание нарушения");
-                sendMessageBot.sendMessage(sendMessage);
                 violationChoiceWay = ViolationChoiceWay.TEXT;
-                return this;
+                sendMessage.setText("Добавьте описание нарушения");
+                return getSendMessageAndStateBot(this, sendMessage);
             }
             case SAVE -> {
                 violationRepository.save(violation);
                 violation = null;
                 sendMessage.setText("Нарушение успешно добавлено");
-                sendMessageBot.sendMessage(sendMessage);
-                return null;
+                return getSendMessageAndStateBot(null, sendMessage);
             }
             case BACK_TO_START_MENU -> {
                 sendMessage.setText("Вы вернулись в начальное меню");
-                sendMessageBot.sendMessage(sendMessage);
-                return null;
+                return getSendMessageAndStateBot(null, sendMessage);
             }
             case BACK -> {
                 sendMessage.setText("укажите текст и фото нарушения");
-                sendMessageBot.sendMessage(sendMessage);
-                return this;
+                return getSendMessageAndStateBot(null, sendMessage);
             }
             default -> {
-                return this;
+                return getSendMessageAndStateBot(null, sendMessage);
             }
         }
+    }
+
+    public SendMessageAndStateBot getSendMessageAndStateBot(StateBot stateBot, SendMessage message) {
+        SendMessageAndStateBot sendMessageAndStateBot = new SendMessageAndStateBot();
+        sendMessageAndStateBot.setSendMessage(message);
+        sendMessageAndStateBot.setStateBot(stateBot);
+        return sendMessageAndStateBot;
     }
 }

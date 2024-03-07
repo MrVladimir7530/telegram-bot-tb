@@ -1,6 +1,6 @@
 package com.example.telegrambot.relocations;
 
-import com.example.telegrambot.services.SendMessageBot;
+import com.example.telegrambot.model.SendMessageAndStateBot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,33 +16,37 @@ import java.util.List;
 
 @Component
 public class StartMenuRelocation implements StateBot {
-    private final SendMessageBot sendMessageBot;
     private final ViolationRelocation violationRelocation;
+    private final ListViolationsRelocation listViolationsRelocation;
 
     private final String VIOLATION = "VIOLATION";
     private final String LIST_VIOLATION = "LIST_VIOLATION";
 
 
     @Autowired
-    public StartMenuRelocation(SendMessageBot sendMessageBot, ViolationRelocation violationRelocation) {
-        this.sendMessageBot = sendMessageBot;
+    public StartMenuRelocation(ViolationRelocation violationRelocation, ListViolationsRelocation listViolationsRelocation) {
         this.violationRelocation = violationRelocation;
+        this.listViolationsRelocation = listViolationsRelocation;
     }
 
     @Override
-    public StateBot doing(Update update) {
+    public SendMessageAndStateBot doing(Update update) {
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             return choiceWayForButton(callbackQuery);
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
         sendMessage.setChatId(update.getMessage().getChatId());
-        sendMessage.setText("Hi, vova");
-
-
         return choiceWayForText(sendMessage);
+
+    }
+
+    @Override
+    public SendMessage createKeyboard(SendMessage sendMessage) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = createInlineKeyboardMarkup();
+        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+        return sendMessage;
 
     }
 
@@ -63,29 +67,31 @@ public class StartMenuRelocation implements StateBot {
     }
 
 
-    public StateBot choiceWayForText(SendMessage sendMessage) {
-        String text = sendMessage.getText();
-        sendMessageBot.sendMessage(sendMessage);
-        return this;
+    public SendMessageAndStateBot choiceWayForText(SendMessage sendMessage) {
+        sendMessage.setText("Пожалуста, выберите кнопку");
+        return getSendMessageAndStateBot(this, sendMessage);
     }
 
-    public StateBot choiceWayForButton(CallbackQuery callbackQuery) {
+    public SendMessageAndStateBot choiceWayForButton(CallbackQuery callbackQuery) {
         Message message = callbackQuery.getMessage();
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
         switch (callbackQuery.getData()) {
             case VIOLATION:
                 sendMessage.setText("укажите текст и фото нарушения");
-                InlineKeyboardMarkup inlineKeyboardMarkup = violationRelocation.createInlineKeyboardMarkup();
-                sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-                sendMessageBot.sendMessage(sendMessage);
-                return violationRelocation;
+                return getSendMessageAndStateBot(violationRelocation, sendMessage);
             case LIST_VIOLATION:
                 sendMessage.setText("Список замеченный вами нарушений:");
-                sendMessageBot.sendMessage(sendMessage);
-                return this;
+                return getSendMessageAndStateBot(listViolationsRelocation, sendMessage);
             default:
-                return this;
+                return getSendMessageAndStateBot(this, sendMessage);
         }
+    }
+
+    public SendMessageAndStateBot getSendMessageAndStateBot(StateBot stateBot, SendMessage message) {
+        SendMessageAndStateBot sendMessageAndStateBot = new SendMessageAndStateBot();
+        sendMessageAndStateBot.setSendMessage(message);
+        sendMessageAndStateBot.setStateBot(stateBot);
+        return sendMessageAndStateBot;
     }
 }
