@@ -1,6 +1,7 @@
 package com.example.telegrambot.relocations;
 
 import com.example.telegrambot.model.SendMessageAndStateBot;
+import com.example.telegrambot.repositories.ViolationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -18,15 +19,17 @@ import java.util.List;
 public class StartMenuRelocation implements StateBot {
     private final ViolationRelocation violationRelocation;
     private final ListViolationsRelocation listViolationsRelocation;
+    private final ViolationRepository violationRepository;
 
     private final String VIOLATION = "VIOLATION";
     private final String LIST_VIOLATION = "LIST_VIOLATION";
 
 
     @Autowired
-    public StartMenuRelocation(ViolationRelocation violationRelocation, ListViolationsRelocation listViolationsRelocation) {
+    public StartMenuRelocation(ViolationRelocation violationRelocation, ListViolationsRelocation listViolationsRelocation, ViolationRepository violationRepository) {
         this.violationRelocation = violationRelocation;
         this.listViolationsRelocation = listViolationsRelocation;
+        this.violationRepository = violationRepository;
     }
 
     @Override
@@ -82,6 +85,7 @@ public class StartMenuRelocation implements StateBot {
                 return getSendMessageAndStateBot(violationRelocation, sendMessage);
             case LIST_VIOLATION:
                 sendMessage.setText("Список замеченный вами нарушений:");
+                //todo написать получение всех нарушения по chat_id
                 return getSendMessageAndStateBot(listViolationsRelocation, sendMessage);
             default:
                 return getSendMessageAndStateBot(this, sendMessage);

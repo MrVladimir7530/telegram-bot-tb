@@ -1,10 +1,9 @@
 package com.example.telegrambot.relocations;
 
+import com.example.telegrambot.choise_way.ViolationChoiceWay;
 import com.example.telegrambot.entity.Violation;
 import com.example.telegrambot.model.SendMessageAndStateBot;
 import com.example.telegrambot.repositories.ViolationRepository;
-import com.example.telegrambot.services.SendMessageBot;
-import liquibase.pro.packaged.S;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
