@@ -1,6 +1,5 @@
 package com.example.telegrambot.relocations;
 
-import com.example.telegrambot.services.SendMessageBot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -16,27 +15,26 @@ import java.util.List;
 @Service
 @Primary
 public class StartMenu implements Action {
-    private final SendMessageBot sendMessageBot;
-
+    private StateBot stateBot;
     private final String VIOLATION = "VIOLATION";
     private final String LIST = "LIST";
 
-
-    @Autowired
-    public StartMenu(SendMessageBot sendMessageBot) {
-        this.sendMessageBot = sendMessageBot;
+    public StartMenu(StateBot stateBot) {
+        this.stateBot = stateBot;
     }
 
-    @Override
-    public Action doing(Update update) {
 
+    @Override
+    public SendMessage doing(Update update) {
         SendMessage sendMessage = new SendMessage();
+        if (update.hasCallbackQuery()) {
+
+        }
         sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
         sendMessage.setChatId(update.getMessage().getChatId());
         sendMessage.setText("Hi, vova");
 
-
-        return choiceWay(sendMessage);
+        return sendMessage;
 
     }
 
@@ -57,8 +55,5 @@ public class StartMenu implements Action {
     }
 
 
-    public Action choiceWay(SendMessage sendMessage) {
-        sendMessageBot.sendMessage(sendMessage);
-        return this;
-    }
+
 }
