@@ -1,8 +1,9 @@
 package com.example.telegrambot.relocations;
 
-import com.example.telegrambot.model.SendMessageAndStateBot;
 import com.example.telegrambot.services.SendMessageBot;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -12,55 +13,52 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Component
-public class StartMenuAdminRelocation implements StateBot {
-
+@Service
+@Primary
+public class StartMenu implements Action {
     private final SendMessageBot sendMessageBot;
 
-    private final String PHOTO = "Photo";
-    private final String TEXT = "TEXT";
+    private final String VIOLATION = "VIOLATION";
+    private final String LIST = "LIST";
 
-    public StartMenuAdminRelocation(SendMessageBot sendMessageBot) {
+
+    @Autowired
+    public StartMenu(SendMessageBot sendMessageBot) {
         this.sendMessageBot = sendMessageBot;
     }
 
     @Override
-    public SendMessageAndStateBot doing(Update update) {
+    public Action doing(Update update) {
+
         SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
         sendMessage.setChatId(update.getMessage().getChatId());
         sendMessage.setText("Hi, vova");
+
 
         return choiceWay(sendMessage);
 
     }
 
-    @Override
-    public SendMessage createKeyboard(SendMessage sendMessage) {
-        sendMessage.setReplyMarkup(createInlineKeyboardMarkup());
-        return sendMessage;
-    }
-
     public InlineKeyboardMarkup createInlineKeyboardMarkup() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton addedPhoto = new InlineKeyboardButton("Добавить фото");
-        InlineKeyboardButton addedText = new InlineKeyboardButton("Добавить текст");
+        InlineKeyboardButton addedViolation = new InlineKeyboardButton("Добавить нарушение");
+        InlineKeyboardButton addedList = new InlineKeyboardButton("Список нарушений");
 
-        addedPhoto.setCallbackData(PHOTO);
-        addedText.setCallbackData(TEXT);
+        addedViolation.setCallbackData(VIOLATION);
+        addedList.setCallbackData(LIST);
 
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(addedPhoto);
-        buttons.add(addedText);
+        buttons.add(addedViolation);
+        buttons.add(addedList);
 
         inlineKeyboardMarkup.setKeyboard(Collections.singletonList(buttons));
         return inlineKeyboardMarkup;
     }
 
-    public SendMessageAndStateBot choiceWay(SendMessage sendMessage) {
-        SendMessageAndStateBot sendMessageAndStateBot = new SendMessageAndStateBot();
+
+    public Action choiceWay(SendMessage sendMessage) {
         sendMessageBot.sendMessage(sendMessage);
-        sendMessageAndStateBot.setSendMessage(sendMessage);
-        sendMessageAndStateBot.setStateBot(this);
-        return sendMessageAndStateBot;
+        return this;
     }
 }
