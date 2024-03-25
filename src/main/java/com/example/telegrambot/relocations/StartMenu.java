@@ -36,12 +36,15 @@ public class StartMenu implements Action {
 
 
     @Override
-    public SendMessage doing(Update update) {
+    public List<SendMessage> doing(Update update) {
         SendMessage sendMessage = new SendMessage();
+        List<SendMessage> sendMessages = new ArrayList<>();
         if (update.hasCallbackQuery()) {
             Long chatId = update.getCallbackQuery().getMessage().getChatId();
             sendMessage.setChatId(chatId);
-            return getMessageAtCallbackQuery(update, sendMessage);
+            SendMessage messageAtCallbackQuery = getMessageAtCallbackQuery(update, sendMessage);
+            sendMessages.add(messageAtCallbackQuery);
+            return sendMessages;
 
         } else {
             Long chatId = update.getMessage().getChatId();
@@ -50,7 +53,8 @@ public class StartMenu implements Action {
             }
             sendMessage.setChatId(chatId);
             sendMessage.setText("Hi, vova");
-            return sendMessage;
+            sendMessages.add(sendMessage);
+            return sendMessages;
         }
     }
 
