@@ -11,6 +11,7 @@ public class Violation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String text;
+    private String place;
     @ManyToOne
     @JoinColumn(name = "chat_id")
     private Subscriber subscriber;

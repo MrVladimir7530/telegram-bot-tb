@@ -2,6 +2,7 @@ package com.example.telegrambot.relocations;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service

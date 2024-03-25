@@ -12,6 +12,7 @@ create table subscriber(
 create table violation(
     id bigserial primary key,
     text text,
+    place text,
     chat_id bigint not null,
     foreign key (chat_id) references subscriber(chat_id)
 );
