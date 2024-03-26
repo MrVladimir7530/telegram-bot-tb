@@ -10,7 +10,7 @@ public class Photo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private String dataPath;
+    private byte[] data;
     @ManyToOne
     @JoinColumn(name = "violation_id")
     private Violation violation;

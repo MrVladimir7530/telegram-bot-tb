@@ -1,32 +1,41 @@
 package com.example.telegrambot.relocations;
 
+import com.example.telegrambot.TelegramBot;
+import com.example.telegrambot.entity.Photo;
 import com.example.telegrambot.entity.Violation;
 import com.example.telegrambot.repositories.ViolationRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
 public class DescriptionViolation implements Action {
     private StateViolation stateViolation;
     private Violation violation;
+    private Photo photo;
     private final ViolationRepository violationRepository;
     private final StateBot stateBot;
     private final StartMenu startMenu;
     private final String BACK = "BACK";
     private final String START = "START";
+    private final String SKIP = "SKIP";
+    private final TelegramBot telegramBot;
 
-    public DescriptionViolation(ViolationRepository violationRepository, @Lazy StateBot stateBot, @Lazy StartMenu startMenu) {
+    public DescriptionViolation(ViolationRepository violationRepository, @Lazy StateBot stateBot, @Lazy StartMenu startMenu, @Lazy TelegramBot telegramBot) {
         this.violationRepository = violationRepository;
         this.stateBot = stateBot;
         this.startMenu = startMenu;
+        this.telegramBot = telegramBot;
         stateViolation = StateViolation.DESCRIPTION;
         violation = new Violation();
     }
@@ -42,8 +51,9 @@ public class DescriptionViolation implements Action {
             sendMessages.add(messageAtCallbackQuery);
             return sendMessages;
         }
+        createViolation(update);
         sendMessage.setChatId(update.getMessage().getChatId());
-        stateViolation = getStateViolationAtText();
+        stateViolation = getStateViolationAtText(update);
         String text = getText(stateViolation);
         sendMessage.setText(text);
         sendMessages.add(sendMessage);
@@ -53,19 +63,30 @@ public class DescriptionViolation implements Action {
     @Override
     public InlineKeyboardMarkup createInlineKeyboardMarkup() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsLine1 = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsLine2 = new ArrayList<>();
 
         InlineKeyboardButton back = new InlineKeyboardButton("Назад");
         back.setCallbackData(BACK);
-        buttons.add(back);
+        buttonsLine1.add(back);
 
         if (!stateViolation.equals(StateViolation.DESCRIPTION)) {
             InlineKeyboardButton inMenu = new InlineKeyboardButton("В меню");
             inMenu.setCallbackData(START);
-            buttons.add(inMenu);
+            buttonsLine1.add(inMenu);
         }
 
-        inlineKeyboardMarkup.setKeyboard(Collections.singletonList(buttons));
+        if (stateViolation.equals(StateViolation.PHOTO)) {
+            InlineKeyboardButton skip = new InlineKeyboardButton("Пропустить");
+            skip.setCallbackData(SKIP);
+            buttonsLine2.add(skip);
+        }
+
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        buttons.add(buttonsLine1);
+        buttons.add(buttonsLine2);
+
+        inlineKeyboardMarkup.setKeyboard(buttons);
         return inlineKeyboardMarkup;
     }
 
@@ -73,7 +94,7 @@ public class DescriptionViolation implements Action {
         String data = update.getCallbackQuery().getData();
         switch (data) {
             case BACK -> {
-                stateViolation = getStateViolation();
+                stateViolation = getStateViolationAtBack();
                 String text = getText(stateViolation);
                 sendMessage.setText(text);
                 return sendMessage;
@@ -84,11 +105,17 @@ public class DescriptionViolation implements Action {
                 stateBot.setAction(startMenu);
                 return sendMessage;
             }
+            case SKIP ->{
+                stateViolation = StateViolation.FINAL;
+                String text = getText(stateViolation);
+                sendMessage.setText(text);
+                return sendMessage;
+            }
         }
         return null;
     }
 
-    public StateViolation getStateViolation() {
+    public StateViolation getStateViolationAtBack() {
         switch (stateViolation) {
             case DESCRIPTION -> {
                 stateBot.setAction(startMenu);
@@ -105,6 +132,7 @@ public class DescriptionViolation implements Action {
             }
 
         }
+        //todo подправить
         throw new RuntimeException();
     }
 
@@ -131,7 +159,7 @@ public class DescriptionViolation implements Action {
         throw new RuntimeException();
     }
 
-    public StateViolation getStateViolationAtText() {
+    public StateViolation getStateViolationAtText(Update update) {
         switch (stateViolation) {
             case DESCRIPTION -> {
                 return StateViolation.PLACE;
@@ -139,7 +167,12 @@ public class DescriptionViolation implements Action {
             case PLACE -> {
                 return StateViolation.PHOTO;
             }
-            case PHOTO, FINAL -> {
+            case PHOTO -> {
+                return StateViolation.FINAL;
+            }
+            case FINAL -> {
+
+                //todo тут отправка финала
                 return StateViolation.FINAL;
             }
         }
