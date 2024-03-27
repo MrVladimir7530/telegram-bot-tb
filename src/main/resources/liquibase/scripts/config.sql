@@ -21,7 +21,9 @@ create table violation(
 --changeset volkov_vm:create_table_photo
 create table photo(
     id bigserial primary key,
-    data bytea,
+    path varchar(255),
+    media_type varchar(255),
+    size bigint,
     violation_id bigint not null,
     foreign key (violation_id) references violation(id)
 );

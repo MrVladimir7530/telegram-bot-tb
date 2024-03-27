@@ -9,7 +9,7 @@ import java.util.List;
 
 @Service
 public interface Action {
-    List<SendMessage> doing(Update update);
+   void doing(Update update);
 
     InlineKeyboardMarkup createInlineKeyboardMarkup();
 }

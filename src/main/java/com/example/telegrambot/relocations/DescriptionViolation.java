@@ -41,23 +41,23 @@ public class DescriptionViolation implements Action {
     }
 
     @Override
-    public List<SendMessage> doing(Update update) {
-        SendMessage sendMessage = new SendMessage();
-        List<SendMessage> sendMessages = new ArrayList<>();
-        if (update.hasCallbackQuery()) {
-            Long chatId = update.getCallbackQuery().getMessage().getChatId();
-            sendMessage.setChatId(chatId);
-            SendMessage messageAtCallbackQuery = getMessageAtCallbackQuery(update, sendMessage);
-            sendMessages.add(messageAtCallbackQuery);
-            return sendMessages;
-        }
-        createViolation(update);
-        sendMessage.setChatId(update.getMessage().getChatId());
-        stateViolation = getStateViolationAtText(update);
-        String text = getText(stateViolation);
-        sendMessage.setText(text);
-        sendMessages.add(sendMessage);
-        return sendMessages;
+    public void doing(Update update) {
+//        SendMessage sendMessage = new SendMessage();
+//        List<SendMessage> sendMessages = new ArrayList<>();
+//        if (update.hasCallbackQuery()) {
+//            Long chatId = update.getCallbackQuery().getMessage().getChatId();
+//            sendMessage.setChatId(chatId);
+//            SendMessage messageAtCallbackQuery = getMessageAtCallbackQuery(update, sendMessage);
+//            sendMessages.add(messageAtCallbackQuery);
+//            return sendMessages;
+//        }
+//        createViolation(update);
+//        sendMessage.setChatId(update.getMessage().getChatId());
+//        stateViolation = getStateViolationAtText(update);
+//        String text = getText(stateViolation);
+//        sendMessage.setText(text);
+//        sendMessages.add(sendMessage);
+//        return sendMessages;
     }
 
     @Override

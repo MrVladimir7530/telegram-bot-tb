@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class StateBot {
     private Action action;
 
-    public StateBot(StartMenu startMenu) {
+    public StateBot(@Lazy StartMenu startMenu) {
         this.action = startMenu;
     }
 
